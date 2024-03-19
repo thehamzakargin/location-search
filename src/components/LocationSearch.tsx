@@ -1,5 +1,6 @@
 import type { Place } from "../api/Place";
-import { ReactHTMLElement, useState } from "react";
+import { Fragment, useState } from "react";
+import { search } from "../api/Search";
 
 interface LocationSearcProps {
     onPlaceClick: (place: Place) => void;
@@ -7,13 +8,15 @@ interface LocationSearcProps {
 
 export default function LocationSearch({onPlaceClick}: LocationSearcProps) {
     const [term, setTerm] = useState ('');
-    const [places, SetPlaces] = useState<Place>([]);
-    const handleSubmit = async (event: React.FormEvent<ReactHTMLElement>) => {
+    const [places, setPlaces] = useState<Place[]>([]);
+    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+        const results = await search(term);
+        setPlaces(results);
     }
 
     return <div>
-        <form>
+        <form onSubmit={handleSubmit}>
             <label className="font-bold" htmlFor="term">
                 Search
             </label>
@@ -24,5 +27,22 @@ export default function LocationSearch({onPlaceClick}: LocationSearcProps) {
             onChange={e => setTerm(e.target.value)}
             />
         </form>
-    </div>;
+        <h1 className="font-bold mt-6">Found locations</h1>
+        <div className="grid grid-cols-[1fr-40px] gap-2 mt-2 items-center">
+            {
+                places.map(place => {
+                    return <Fragment key={place.id}>
+                        <p className="text-sm">{place.name}</p>
+                        <button className="bg-blue-500 text-xs text-white font-bold py-1 px-1 rounded"
+                        onClick={() => onPlaceClick(place)}
+                        >
+                            Go
+                        </button>
+                        <div className="border-b w-full col span-2"/>
+                    </Fragment>
+                })
+            }
+
+        </div>
+    </div>
 }
